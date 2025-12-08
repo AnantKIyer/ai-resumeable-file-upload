@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+.hypothesis/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+coverage/
+.nyc_output/
+
+# Uploads
+backend/uploads/*
+!backend/uploads/.gitkeep
+backend/completed/*
+!backend/completed/.gitkeep
+
+# Test artifacts
+backend/.pytest_cache/
+backend/htmlcov/
+backend/coverage.xml
+frontend/coverage/
+frontend/playwright-report/
+frontend/test-results/
+frontend/.playwright/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+
+# Metadata store (test data)
+backend/metadata_store.json

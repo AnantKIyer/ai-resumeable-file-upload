@@ -1,0 +1,150 @@
+.upload-progress {
+  margin-top: 20px;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.progress-header {
+  margin-bottom: 20px;
+}
+
+.progress-info {
+  margin-bottom: 15px;
+}
+
+.progress-text {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.progress-percentage {
+  font-size: 24px;
+  font-weight: bold;
+  color: #2563eb;
+}
+
+.progress-stats {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 8px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+  transition: width 0.3s ease;
+}
+
+.progress-details {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 14px;
+}
+
+.detail-item {
+  display: flex;
+  gap: 5px;
+}
+
+.detail-label {
+  color: #6b7280;
+}
+
+.detail-value {
+  font-weight: 500;
+  color: #111827;
+}
+
+.chunks-grid {
+  margin-top: 20px;
+}
+
+.chunks-grid-header {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 10px;
+  color: #374151;
+}
+
+.chunks-grid-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-bottom: 15px;
+  min-height: 30px;
+}
+
+.chunk-indicator {
+  height: 20px;
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+
+.chunk-uploaded {
+  background-color: #10b981;
+}
+
+.chunk-uploading {
+  background-color: #f59e0b;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.chunk-failed {
+  background-color: #ef4444;
+}
+
+.chunk-pending {
+  background-color: #e5e7eb;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.chunks-legend {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.failed-chunks-warning {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #fef3c7;
+  border-left: 4px solid #f59e0b;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #92400e;
+}
+
