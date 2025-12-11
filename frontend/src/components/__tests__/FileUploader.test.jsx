@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import React from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import FileUploader from '../FileUploader'
@@ -12,13 +13,25 @@ vi.mock('../../services/uploadService', () => ({
 
 // Mock react-dropzone
 vi.mock('react-dropzone', () => ({
-  useDropzone: ({ onDrop }) => ({
-    getRootProps: () => ({
-      onClick: () => {},
-    }),
-    getInputProps: () => ({}),
-    isDragActive: false,
-  }),
+  useDropzone: ({ onDrop }) => {
+    // Store onDrop callback for testing
+    window.__dropzoneOnDrop = onDrop;
+    return {
+      getRootProps: () => ({
+        onClick: () => {
+          // Simulate file selection by calling onDrop directly
+          const file = new File(['test content'], 'test.jsonl', { type: 'application/json' });
+          onDrop([file]);
+        },
+      }),
+      getInputProps: () => ({
+        type: 'file',
+        accept: '*/*',
+        style: { display: 'none' },
+      }),
+      isDragActive: false,
+    };
+  },
 }))
 
 describe('FileUploader', () => {
@@ -33,19 +46,18 @@ describe('FileUploader', () => {
   })
   
   it('should display file info after file selection', async () => {
-    const file = new File(['test content'], 'test.jsonl', { type: 'application/json' })
-    
     render(<FileUploader />)
     
-    const input = screen.getByRole('textbox', { hidden: true }) || document.querySelector('input[type="file"]')
-    if (input) {
-      await userEvent.upload(input, file)
+    // Click the dropzone to trigger file selection
+    const dropzone = screen.getByText(/drag & drop a file here/i).closest('div')
+    if (dropzone) {
+      await userEvent.click(dropzone)
     }
     
     // File info should be displayed
     await waitFor(() => {
       expect(screen.getByText(/test\.jsonl/i)).toBeInTheDocument()
-    })
+    }, { timeout: 3000 })
   })
   
   it('should start upload when button clicked', async () => {

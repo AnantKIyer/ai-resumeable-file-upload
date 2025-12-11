@@ -1,147 +1,173 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import axios from 'axios';
-import * as api from '../api';
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock axios
-vi.mock('axios');
+// Mock axios before importing the api module
+const { mockPost, mockGet } = vi.hoisted(() => {
+  const mockPost = vi.fn();
+  const mockGet = vi.fn();
+  return { mockPost, mockGet };
+});
 
-describe('API Client', () => {
+vi.mock("axios", () => {
+  const mockAxiosInstance = {
+    post: mockPost,
+    get: mockGet,
+  };
+
+  return {
+    default: {
+      create: vi.fn(() => mockAxiosInstance),
+    },
+    create: vi.fn(() => mockAxiosInstance),
+  };
+});
+
+// Import after mocking
+import * as api from "../api";
+
+describe("API Client", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
-  
-  describe('initUpload', () => {
-    it('should initialize upload successfully', async () => {
+
+  describe("initUpload", () => {
+    it("should initialize upload successfully", async () => {
       const mockResponse = {
         data: {
-          uploadId: 'test-123',
+          uploadId: "test-123",
           chunkSize: 1048576,
         },
       };
-      
-      axios.create().post.mockResolvedValue(mockResponse);
-      
-      const result = await api.initUpload('test.jsonl', 5242880, 'checksum-123');
-      
+
+      mockPost.mockResolvedValue(mockResponse);
+
+      const result = await api.initUpload(
+        "test.jsonl",
+        5242880,
+        "checksum-123"
+      );
+
       expect(result).toEqual(mockResponse.data);
-      expect(axios.create().post).toHaveBeenCalledWith('/api/upload/init', {
-        filename: 'test.jsonl',
+      expect(mockPost).toHaveBeenCalledWith("/api/upload/init", {
+        filename: "test.jsonl",
         totalSize: 5242880,
-        checksum: 'checksum-123',
+        checksum: "checksum-123",
       });
     });
-    
-    it('should initialize upload without checksum', async () => {
+
+    it("should initialize upload without checksum", async () => {
       const mockResponse = {
         data: {
-          uploadId: 'test-456',
+          uploadId: "test-456",
           chunkSize: 1048576,
         },
       };
-      
-      axios.create().post.mockResolvedValue(mockResponse);
-      
-      const result = await api.initUpload('test.jsonl', 5242880);
-      
+
+      mockPost.mockResolvedValue(mockResponse);
+
+      const result = await api.initUpload("test.jsonl", 5242880);
+
       expect(result).toEqual(mockResponse.data);
-      expect(axios.create().post).toHaveBeenCalledWith('/api/upload/init', {
-        filename: 'test.jsonl',
+      expect(mockPost).toHaveBeenCalledWith("/api/upload/init", {
+        filename: "test.jsonl",
         totalSize: 5242880,
         checksum: null,
       });
     });
   });
-  
-  describe('uploadChunk', () => {
-    it('should upload chunk successfully', async () => {
+
+  describe("uploadChunk", () => {
+    it("should upload chunk successfully", async () => {
       const mockResponse = {
         data: {
           success: true,
           receivedChunks: 1,
-          message: 'Chunk uploaded successfully',
+          message: "Chunk uploaded successfully",
         },
       };
-      
-      const chunkData = new Blob(['chunk data']);
-      axios.create().post.mockResolvedValue(mockResponse);
-      
-      const result = await api.uploadChunk('test-123', 0, 5, chunkData);
-      
+
+      const chunkData = new Blob(["chunk data"]);
+      mockPost.mockResolvedValue(mockResponse);
+
+      const result = await api.uploadChunk("test-123", 0, 5, chunkData);
+
       expect(result).toEqual(mockResponse.data);
-      expect(axios.create().post).toHaveBeenCalledWith(
-        '/api/upload/chunk',
+      expect(mockPost).toHaveBeenCalledWith(
+        "/api/upload/chunk",
         expect.any(FormData),
         expect.objectContaining({
           headers: expect.objectContaining({
-            'Content-Type': 'multipart/form-data',
+            "Content-Type": "multipart/form-data",
           }),
         })
       );
     });
   });
-  
-  describe('getUploadStatus', () => {
-    it('should get upload status successfully', async () => {
+
+  describe("getUploadStatus", () => {
+    it("should get upload status successfully", async () => {
       const mockResponse = {
         data: {
-          uploadId: 'test-123',
+          uploadId: "test-123",
           totalChunks: 5,
           receivedChunks: [0, 1, 2],
           isComplete: false,
         },
       };
-      
-      axios.create().get.mockResolvedValue(mockResponse);
-      
-      const result = await api.getUploadStatus('test-123');
-      
+
+      mockGet.mockResolvedValue(mockResponse);
+
+      const result = await api.getUploadStatus("test-123");
+
       expect(result).toEqual(mockResponse.data);
-      expect(axios.create().get).toHaveBeenCalledWith('/api/upload/status/test-123');
+      expect(mockGet).toHaveBeenCalledWith("/api/upload/status/test-123");
     });
   });
-  
-  describe('completeUpload', () => {
-    it('should complete upload successfully', async () => {
+
+  describe("completeUpload", () => {
+    it("should complete upload successfully", async () => {
       const mockResponse = {
         data: {
           success: true,
-          filepath: 'completed/test.jsonl',
+          filepath: "completed/test.jsonl",
           metadata: {
-            filename: 'test.jsonl',
+            filename: "test.jsonl",
             size: 5242880,
           },
-          message: 'Upload completed successfully',
+          message: "Upload completed successfully",
         },
       };
-      
-      axios.create().post.mockResolvedValue(mockResponse);
-      
-      const result = await api.completeUpload('test-123');
-      
+
+      mockPost.mockResolvedValue(mockResponse);
+
+      const result = await api.completeUpload("test-123");
+
       expect(result).toEqual(mockResponse.data);
-      expect(axios.create().post).toHaveBeenCalledWith('/api/upload/complete/test-123');
+      expect(mockPost).toHaveBeenCalledWith("/api/upload/complete/test-123");
     });
   });
-  
-  describe('error handling', () => {
-    it('should handle network errors', async () => {
-      axios.create().post.mockRejectedValue(new Error('Network Error'));
-      
-      await expect(api.initUpload('test.jsonl', 1024)).rejects.toThrow('Network Error');
+
+  describe("error handling", () => {
+    it("should handle network errors", async () => {
+      mockPost.mockRejectedValue(new Error("Network Error"));
+
+      await expect(api.initUpload("test.jsonl", 1024)).rejects.toThrow(
+        "Network Error"
+      );
     });
-    
-    it('should handle server errors', async () => {
+
+    it("should handle server errors", async () => {
       const errorResponse = {
         response: {
           status: 500,
-          data: { detail: 'Internal server error' },
+          data: { detail: "Internal server error" },
         },
       };
-      
-      axios.create().post.mockRejectedValue(errorResponse);
-      
-      await expect(api.initUpload('test.jsonl', 1024)).rejects.toEqual(errorResponse);
+
+      mockPost.mockRejectedValue(errorResponse);
+
+      await expect(api.initUpload("test.jsonl", 1024)).rejects.toEqual(
+        errorResponse
+      );
     });
   });
 });
-
