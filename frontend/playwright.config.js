@@ -30,13 +30,11 @@ export default defineConfig({
       command: "cd ../backend && python3 -m uvicorn app.main:app --port 8000",
       port: 8000,
       reuseExistingServer: !process.env.CI,
-      cwd: process.cwd(),
     },
     {
       command: "npm run dev",
       port: 3000,
       reuseExistingServer: !process.env.CI,
-      cwd: process.cwd(),
     },
   ],
 });
