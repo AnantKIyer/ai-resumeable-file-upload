@@ -39,7 +39,10 @@ test.describe("File Upload E2E Tests", () => {
     await page.getByRole("button", { name: /start upload/i }).click();
 
     // Wait for upload to complete - look for the success message
-    await expect(page.getByText(/upload complete!/i)).toBeVisible({
+    // Use getByRole for heading which is more reliable than text matching with emojis
+    await expect(
+      page.getByRole("heading", { name: /upload complete/i })
+    ).toBeVisible({
       timeout: 60000,
     });
 
@@ -108,30 +111,67 @@ test.describe("File Upload E2E Tests", () => {
       buffer: Buffer.from(fileContent),
     });
 
+    // Wait for file info to appear
+    await expect(page.getByText("resume_test.jsonl")).toBeVisible({
+      timeout: 10000,
+    });
+
     await page.getByRole("button", { name: /start upload/i }).click();
 
-    // Wait a bit for some chunks to upload (at least 1 second for first chunk)
-    await page.waitForTimeout(3000);
+    // Wait for upload to start and some chunks to upload
+    // Check for progress indicator to ensure upload started
+    await expect(page.getByText(/%/)).toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(2000); // Wait for at least one chunk to upload
 
-    // Reload page (simulating network failure) - this will lose the upload state
-    // In a real scenario, the server would remember the upload
+    // Reload page (simulating network failure) - server should remember the upload
     await page.reload();
 
+    // Wait for page to be ready
+    await expect(page.getByText(/resumable ai file upload/i)).toBeVisible();
+
     // Re-select same file and start upload again
-    await fileInput.setInputFiles({
+    const fileInputAfterReload = page.locator('input[type="file"]');
+    await fileInputAfterReload.setInputFiles({
       name: "resume_test.jsonl",
       mimeType: "application/json",
       buffer: Buffer.from(fileContent),
     });
 
+    // Wait for file info to appear again
+    await expect(page.getByText("resume_test.jsonl")).toBeVisible({
+      timeout: 10000,
+    });
+
     await page.getByRole("button", { name: /start upload/i }).click();
 
+    // Wait for upload to start (check for progress indicator)
+    await expect(page.getByText(/%/)).toBeVisible({ timeout: 10000 });
+
     // The upload should resume from server state (some chunks already uploaded)
-    // We verify this by checking that upload completes faster or progress shows
+    // We verify this by checking that upload completes
     // Since resume happens server-side, we just verify the upload completes
-    await expect(page.getByText(/upload complete!/i)).toBeVisible({
-      timeout: 60000,
-    });
+    try {
+      // Match "Upload Complete!" - the component shows "✅ Upload Complete!" in an h2
+      // Use getByRole for heading which is more reliable than text matching with emojis
+      await expect(
+        page.getByRole("heading", { name: /upload complete/i })
+      ).toBeVisible({
+        timeout: 90000, // Increased timeout for CI environments
+      });
+    } catch (error) {
+      // If upload fails, check for error message to provide better diagnostics
+      const errorMessage = await page
+        .getByText(/error|failed/i)
+        .first()
+        .textContent()
+        .catch(() => null);
+      if (errorMessage) {
+        throw new Error(
+          `Upload failed with error: ${errorMessage}. Original error: ${error.message}`
+        );
+      }
+      throw error;
+    }
   });
 
   test("should display chunk status grid", async ({ page }) => {
